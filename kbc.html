@@ -1,1 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KBC Quiz</title>
 
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: radial-gradient(circle, #172b75, #050b2d);
+    color: white;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    padding: 15px;
+}
+
+.logo {
+    width: 90px;
+    height: 90px;
+    margin: auto;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f9d423, #ff4e50);
+    border: 5px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    font-weight: bold;
+    box-shadow: 0 0 25px #ffd700;
+}
+
+h1 {
+    margin: 10px 0;
+    color: #ffd700;
+    font-size: 38px;
+}
+
+.game {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 20px;
+}
+
+.main {
+    background: rgba(0,0,0,.35);
+    border: 2px solid #4564d8;
+    border-radius: 20px;
+    padding: 25px;
+}
+
+.timer {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 5px solid #ffd700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+    font-weight: bold;
+    margin: 0 auto 20px;
+    color: #ffd700;
+}
+
+.question {
+    background: linear-gradient(90deg, #101b59, #253c9b);
+    border: 2px solid #8fa4ff;
+    border-radius: 30px;
+    padding: 22px;
+    text-align: center;
+    font-size: 23px;
+    margin-bottom: 20px;
+}
+
+.options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.option {
+    background: linear-gradient(90deg, #111b59, #243c91);
+    border: 2px solid #7189ef;
+    color: white;
+    border-radius: 25px;
+    padding: 17px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: .2s;
+}
+
+.option:hover {
+    background: #394fa8;
+    transform: scale(1.02);
+}
+
+.option.selected {
+    background: #e58b00;
+    border-color: #ffd700;
+}
+
+.option.correct {
+    background: #168b35;
+    border-color: #48ff73;
+}
+
+.option.wrong {
+    background: #a71919;
+    border-color: #ff5555;
+}
+
+.option.disabled {
+    opacity: .35;
+    pointer-events: none;
+}
+
+.lifelines {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.life {
+    background: #17245f;
+    color: #ffd700;
+    border: 2px solid #ffd700;
+    border-radius: 50%;
+    width: 65px;
+    height: 65px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.life:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+}
+
+.lock {
+    display: block;
+    margin: 15px auto;
+    background: #d69b00;
+    color: white;
+    border: 0;
+    padding: 13px 35px;
+    border-radius: 25px;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.lock:disabled {
+    opacity: .4;
+}
+
+.prizes {
+    background: rgba(0,0,0,.4);
+    border-radius: 15px;
+    padding: 15px;
+}
+
+.prizes h2 {
+    text-align: center;
+    color: #ffd700;
+}
+
+.prize {
+    padding: 8px 15px;
+    border-radius: 15px;
+    margin: 4px 0;
+    text-align: right;
+}
+
+.prize.active {
+    background: #d99b00;
+    color: white;
+    font-weight: bold;
+}
+
+.prize.safe {
+    color: #ffd700;
+}
+
+.message {
+    text-align: center;
+    font-size: 22px;
+    min-height: 30px;
+    margin: 10px;
+}
+
+.restart {
+    display: none;
+    margin: 20px auto;
+    padding: 15px 35px;
+    border: 0;
+    border-radius: 25px;
+    background: #eab308;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+@media(max-width: 750px) {
+    .game {
+        grid-template-columns: 1fr;
+    }
+
+    .options {
+        grid-template-columns: 1fr;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <div class="logo">KBC</div>
+    <h1>कौन बनेगा करोड़पति</h1>
+</header>
+
+<div class="game">
+
+<div class="main">
+
+    <div class="timer" id="timer">30</div>
+
+    <div class="question" id="question">
+        प्रश्न लोड हो रहा है...
+    </div>
+
+    <div class="options" id="options"></div>
+
+    <div class="lifelines">
+        <button class="life" id="fifty" onclick="fiftyFifty()">50:50</button>
+        <button class="life" id="poll" onclick="audiencePoll()">👥<br>Poll</button>
+        <button class="life" id="expert" onclick="expert()">☎<br>Expert</button>
+    </div>
+
+    <button class="lock" id="lock" onclick="lockAnswer()" disabled>
+        🔒 Lock Answer
+    </button>
+
+    <div class="message" id="message"></div>
+
+    <button class="restart" id="restart" onclick="restartGame()">
+        🔄 Restart Game
+    </button>
+
+</div>
+
+<div class="prizes">
+    <h2>💰 Prize Money</h2>
+    <div id="prizeList"></div>
+</div>
+
+</div>
+</div>
+
+<script>
+
+const questions = [
+{
+    q: "भारत की राजधानी क्या है?",
+    options: ["मुंबई", "नई दिल्ली", "जयपुर", "लखनऊ"],
+    answer: 1
+},
+{
+    q: "भारत का राष्ट्रीय पशु कौन सा है?",
+    options: ["शेर", "हाथी", "बाघ", "हिरण"],
+    answer: 2
+},
+{
+    q: "सूर्य के सबसे निकट कौन सा ग्रह है?",
+    options: ["पृथ्वी", "बुध", "मंगल", "शुक्र"],
+    answer: 1
+},
+{
+    q: "भारत का संविधान कब लागू हुआ?",
+    options: ["15 अगस्त 1947", "26 जनवरी 1950", "2 अक्टूबर 1950", "26 नवंबर 1949"],
+    answer: 1
+},
+{
+    q: "राजस्थान की राजधानी क्या है?",
+    options: ["उदयपुर", "जोधपुर", "जयपुर", "कोटा"],
+    answer: 2
+},
+{
+    q: "पानी का रासायनिक सूत्र क्या है?",
+    options: ["CO₂", "O₂", "H₂O", "NaCl"],
+    answer: 2
+},
+{
+    q: "भारत में कुल कितने राज्य हैं? (2026)",
+    options: ["26", "28", "29", "30"],
+    answer: 1
+},
+{
+    q: "पृथ्वी का प्राकृतिक उपग्रह कौन है?",
+    options: ["सूर्य", "चंद्रमा", "मंगल", "शुक्र"],
+    answer: 1
+},
+{
+    q: "महात्मा गांधी का जन्मदिन कब मनाया जाता है?",
+    options: ["15 अगस्त", "26 जनवरी", "2 अक्टूबर", "14 नवंबर"],
+    answer: 2
+},
+{
+    q: "भारत का राष्ट्रीय फूल कौन सा है?",
+    options: ["गुलाब", "कमल", "गेंदा", "चमेली"],
+    answer: 1
+}
+];
+
+const prizes = [
+"₹7,00,00,000",
+"₹1,00,00,000",
+"₹50,00,000",
+"₹25,00,000",
+"₹12,50,000",
+"₹6,40,000",
+"₹3,20,000",
+"₹1,60,000",
+"₹80,000",
+"₹40,000"
+];
+
+let current = 0;
+let selected = null;
+let time = 30;
+let timerInterval = null;
+let used5050 = false;
+let usedPoll = false;
+let usedExpert = false;
+
+const questionEl = document.getElementById("question");
+const optionsEl = document.getElementById("options");
+const timerEl = document.getElementById("timer");
+const messageEl = document.getElementById("message");
+const lockBtn = document.getElementById("lock");
+const prizeList = document.getElementById("prizeList");
+
+function showQuestion() {
+
+    selected = null;
+    lockBtn.disabled = true;
+    messageEl.textContent = "";
+
+    const q = questions[current];
+
+    questionEl.textContent =
+        `Q${current + 1}. ${q.q}`;
+
+    optionsEl.innerHTML = "";
+
+    q.options.forEach((option, index) => {
+
+        const btn = document.createElement("button");
+
+        btn.className = "option";
+        btn.textContent =
+            `${String.fromCharCode(65 + index)}. ${option}`;
+
+        btn.onclick = () => selectOption(index, btn);
+
+        optionsEl.appendChild(btn);
+    });
+
+    updatePrizes();
+    startTimer();
+}
+
+function selectOption(index, button) {
+
+    document.querySelectorAll(".option")
+        .forEach(x => x.classList.remove("selected"));
+
+    button.classList.add("selected");
+
+    selected = index;
+    lockBtn.disabled = false;
+}
+
+function lockAnswer() {
+
+    if (selected === null) return;
+
+    clearInterval(timerInterval);
+
+    const q = questions[current];
+    const buttons = document.querySelectorAll(".option");
+
+    buttons.forEach(b => b.disabled = true);
+
+    if (selected === q.answer) {
+
+        buttons[selected].classList.add("correct");
+
+        messageEl.textContent =
+            "🎉 सही जवाब! बहुत बढ़िया!";
+
+        current++;
+
+        if (current >= questions.length) {
+
+            messageEl.textContent =
+                "🏆 बधाई हो! आपने सभी प्रश्नों के सही उत्तर दिए!";
+
+            lockBtn.style.display = "none";
+            document.getElementById("restart").style.display = "block";
+            return;
+        }
+
+        setTimeout(showQuestion, 1500);
+
+    } else {
+
+        buttons[selected].classList.add("wrong");
+        buttons[q.answer].classList.add("correct");
+
+        messageEl.textContent =
+            `❌ गलत जवाब! सही उत्तर: ${q.options[q.answer]}`;
+
+        lockBtn.style.display = "none";
+        document.getElementById("restart").style.display = "block";
+    }
+}
+
+function startTimer() {
+
+    clearInterval(timerInterval);
+
+    time = 30;
+    timerEl.textContent = time;
+
+    timerInterval = setInterval(() => {
+
+        time--;
+
+        timerEl.textContent = time;
+
+        if (time <= 0) {
+
+            clearInterval(timerInterval);
+
+            messageEl.textContent =
+                "⏰ समय समाप्त!";
+
+            lockBtn.disabled = true;
+
+            document.querySelectorAll(".option")
+                .forEach(b => b.disabled = true);
+
+            document.getElementById("restart").style.display = "block";
+        }
+
+    }, 1000);
+}
+
+function updatePrizes() {
+
+    prizeList.innerHTML = "";
+
+    prizes.forEach((p, i) => {
+
+        const div = document.createElement("div");
+
+        div.className = "prize";
+
+        if (i === current)
+            div.classList.add("active");
+
+        if (i === 5 || i === 8)
+            div.classList.add("safe");
+
+        div.textContent =
+            `${i + 1}. ${p}`;
+
+        prizeList.appendChild(div);
+    });
+}
+
+function fiftyFifty() {
+
+    if (used5050) return;
+
+    used5050 = true;
+
+    document.getElementById("fifty").disabled = true;
+
+    const q = questions[current];
+    const buttons = document.querySelectorAll(".option");
+
+    let removed = 0;
+
+    buttons.forEach((btn, index) => {
+
+        if (index !== q.answer && removed < 2) {
+
+            btn.classList.add("disabled");
+            removed++;
+        }
+    });
+}
+
+function audiencePoll() {
+
+    if (usedPoll) return;
+
+    usedPoll = true;
+
+    document.getElementById("poll").disabled = true;
+
+    const q = questions[current];
+
+    alert(
+        "👥 Audience Poll\n\n" +
+        "A: 10%\n" +
+        "B: 20%\n" +
+        "C: 60%\n" +
+        "D: 10%\n\n" +
+        "दर्शकों के अनुसार संभावित उत्तर: " +
+        q.options[q.answer]
+    );
+}
+
+function expert() {
+
+    if (usedExpert) return;
+
+    usedExpert = true;
+
+    document.getElementById("expert").disabled = true;
+
+    const q = questions[current];
+
+    alert(
+        "☎ Ask the Expert\n\n" +
+        "Expert says:\n" +
+        "मेरा मानना है कि सही उत्तर है — " +
+        q.options[q.answer]
+    );
+}
+
+function restartGame() {
+
+    current = 0;
+    selected = null;
+
+    used5050 = false;
+    usedPoll = false;
+    usedExpert = false;
+
+    document.getElementById("fifty").disabled = false;
+    document.getElementById("poll").disabled = false;
+    document.getElementById("expert").disabled = false;
+
+    lockBtn.style.display = "block";
+    document.getElementById("restart").style.display = "none";
+
+    showQuestion();
+}
+
+showQuestion();
+
+</script>
+
+</body>
+</html>
